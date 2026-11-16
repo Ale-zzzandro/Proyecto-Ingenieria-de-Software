@@ -2,8 +2,6 @@
 
 Aplicación web para digitalizar el ciclo de vida de una incidencia escolar en el **Centro Universitario de Tonalá (UdeG)**: desde el reporte hasta su resolución, con seguimiento de responsables, observaciones, estados y fechas auditables.
 
-Proyecto de la materia **Ingeniería del Software (Act. 17)**.
-
 ## Características
 
 - Autenticación con JWT y control de acceso por roles (RBAC).
@@ -15,8 +13,6 @@ Proyecto de la materia **Ingeniería del Software (Act. 17)**.
 - Panel con métricas y reportes recientes, acotado según el rol.
 - Gestión de estudiantes y de usuarios (alta, listado, activación/desactivación).
 - Interfaz en español, responsiva y sin framework de frontend.
-
-> **Estado:** proyecto en desarrollo por fases. La Fase 1 dejó la configuración por entorno, las contraseñas hasheadas y la limpieza del backend; la Fase 2 completó todos los endpoints del contrato (incidencias, estudiantes, usuarios, responsables y métricas). El frontend se adapta en la Fase 3. Consulta [docs/ROADMAP.md](docs/ROADMAP.md) para el estado real.
 
 ## Stack
 
@@ -182,42 +178,3 @@ Solo para entorno local. En `backend/db/schema.sql` las contraseñas se guardan 
     └── js/{config,auth,app}.js
 ```
 
-## Estado actual
-
-| Área | Estado |
-|---|---|
-| Configuración por entorno | ✅ `config.py` + `backend/.env`; secretos fuera del código |
-| Login con JWT | ✅ Correo o matrícula, `check_password_hash`, inactivos rechazados |
-| Catálogo de estudiantes | ✅ GET con filtros y visibilidad por rol; POST con validaciones y `409` |
-| Registro de incidencias | ✅ Admin/Docente/Estudiante, con departamento y responsable opcional |
-| Lista de incidencias | ✅ `GET /api/incidencias` con filtros y acotamiento RN-01 |
-| Detalle y bitácora | ✅ `GET /api/incidencias/<id>` con `bitacora_visible` |
-| Ciclo de vida RN-03 | ✅ Máquina de estados completa; `responsable` no se sobrescribe |
-| Gestión de usuarios | ✅ Listar, crear y activar/desactivar (solo Admin) |
-| Rol Estudiante | ✅ Permisos, vínculo con estudiante y creación desde la API |
-| Selector de responsables | ✅ `GET /api/responsables` (solo activos) |
-| Métricas del panel | ✅ Totales y 5 recientes acotados por rol |
-| Manejo de errores | ✅ 500 genéricos con logging; sin `str(e)` |
-| Pruebas automatizadas | ⚠️ Verificado con script de 88 comprobaciones; suite formal en Fase 4 |
-
-Detalle completo en [docs/ROADMAP.md](docs/ROADMAP.md).
-
-## Respaldo de trabajo
-
-El proyecto **no usa control de versiones**. Antes de cada fase el desarrollador copia la carpeta del proyecto como respaldo; al terminar, el agente lista exactamente los archivos creados, modificados y eliminados.
-
-## Documentación
-
-- [Arquitectura](docs/ARQUITECTURA.md)
-- [API (contrato implementado)](docs/API.md)
-- [Base de datos](docs/BASE_DE_DATOS.md)
-- [Reglas de negocio](docs/REGLAS_DE_NEGOCIO.md)
-- [Roadmap y plan de trabajo](docs/ROADMAP.md)
-- [Guía para agentes](AGENTS.md)
-
-## Créditos
-
-- **Desarrollo:** Jocelyn Citlalli Silva Diaz.
-- **Materia:** Ingeniería del Software, Act. 17.
-- **Profesor:** Gabriel Navarro Salcedo.
-- **Institución:** Centro Universitario de Tonalá, Universidad de Guadalajara.
