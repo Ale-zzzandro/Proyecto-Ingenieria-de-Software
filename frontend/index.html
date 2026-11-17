@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Incidencias Escolares</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Pantalla 1: Inicio de sesión -->
+    <div id="login-screen" class="login-wrapper">
+        <div class="card login-card">
+            <h1 class="login-titulo">Iniciar sesión</h1>
+            <p class="ayuda">Sistema de Gestión de Incidencias Escolares · CUTonalá</p>
+            <form id="form-login" novalidate>
+                <div class="form-group">
+                    <label for="login-correo">Correo o matrícula</label>
+                    <input type="text" id="login-correo" class="form-control"
+                           autocomplete="username" placeholder="ejemplo@cutonala.udg.mx o 219876543" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" class="form-control"
+                           autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+            </form>
+            <p id="login-error" class="mensaje error hidden" role="alert"></p>
+        </div>
+    </div>
+
+    <!-- Aplicación principal -->
+    <div id="main-app" class="hidden">
+        <header class="navbar">
+            <div class="navbar-marca">Sistema de Incidencias UdeG</div>
+            <nav class="nav-menu" aria-label="Navegación principal">
+                <button type="button" class="nav-link activo" data-seccion="sec-panel">Panel</button>
+                <button type="button" class="nav-link" data-seccion="sec-incidencias">Incidencias</button>
+                <button type="button" class="nav-link" id="nav-nueva" data-seccion="sec-crear-incidencia">Nueva</button>
+                <button type="button" class="nav-link" data-seccion="sec-estudiantes">Estudiantes</button>
+                <button type="button" class="nav-link hidden" id="nav-usuarios" data-seccion="sec-usuarios">Usuarios</button>
+            </nav>
+            <div class="navbar-usuario">
+                <span id="user-info"></span>
+                <button type="button" id="btn-logout" class="btn btn-danger">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main class="container">
+
+            <!-- Pantalla 2: Panel -->
+            <section id="sec-panel" class="card">
+                <h2 id="panel-titulo">Panel principal</h2>
+                <p id="panel-descripcion" class="ayuda">Resumen general de incidencias.</p>
+                <p id="panel-mensaje" class="mensaje hidden" role="alert"></p>
+
+                <div class="metric-total">
+                    <span>Total de incidencias</span>
+                    <strong id="panel-total-valor">0</strong>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <h3>Por estado</h3>
+                        <ul id="panel-metricas-estado" class="metric-list"></ul>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Por prioridad</h3>
+                        <ul id="panel-metricas-prioridad" class="metric-list"></ul>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Por categoría</h3>
+                        <ul id="panel-metricas-categoria" class="metric-list"></ul>
+                    </div>
+                </div>
+
+                <h3>Incidencias recientes</h3>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Estudiante</th><th>Categoría</th>
+                                <th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="panel-recientes-body"></tbody>
+                    </table>
+                </div>
+                <p id="panel-vacio" class="mensaje info hidden">No hay incidencias recientes.</p>
+            </section>
+
+            <!-- Pantalla 5: Lista y filtros -->
+            <section id="sec-incidencias" class="card hidden">
+                <h2>Lista de incidencias</h2>
+                <p class="ayuda">Los resultados se acotan automáticamente según su rol.</p>
+
+                <form id="form-filtros" class="filters-grid">
+                    <div class="form-group">
+                        <label for="filtro-q">Buscar</label>
+                        <input type="search" id="filtro-q" class="form-control"
+                               placeholder="Tipo, descripción, estudiante, matrícula…">
+                    </div>
+                    <div class="form-group" id="grupo-filtro-estudiante">
+                        <label for="filtro-estudiante">Estudiante</label>
+                        <select id="filtro-estudiante" class="form-control">
+                            <option value="">Todos los estudiantes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-desde">Desde</label>
+                        <input type="date" id="filtro-desde" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-hasta">Hasta</label>
+                        <input type="date" id="filtro-hasta" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-categoria">Categoría</label>
+                        <select id="filtro-categoria" class="form-control">
+                            <option value="">Todas las categorías</option>
+                            <option value="Conducta">Conducta</option>
+                            <option value="Académica">Académica</option>
+                            <option value="Asistencia">Asistencia</option>
+                            <option value="Otra">Otra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-prioridad">Prioridad</label>
+                        <select id="filtro-prioridad" class="form-control">
+                            <option value="">Todas las prioridades</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="grupo-filtro-responsable">
+                        <label for="filtro-responsable">Responsable</label>
+                        <select id="filtro-responsable" class="form-control">
+                            <option value="">Todos los responsables</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-estado">Estado</label>
+                        <select id="filtro-estado" class="form-control">
+                            <option value="">Todos los estados</option>
+                            <option value="Registrada">Registrada</option>
+                            <option value="En seguimiento">En seguimiento</option>
+                            <option value="Cerrada">Cerrada</option>
+                        </select>
+                    </div>
+                    <div class="filters-actions">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="button" id="btn-limpiar-filtros" class="btn btn-secondary">Limpiar</button>
+                    </div>
+                </form>
+
+                <p id="lista-mensaje" class="mensaje hidden" role="alert"></p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Estudiante</th><th>Categoría</th>
+                                <th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-incidencias-body"></tbody>
+                    </table>
+                </div>
+                <p id="lista-vacio" class="mensaje info hidden">No se encontraron incidencias con los filtros seleccionados.</p>
+            </section>
+
+            <!-- Pantalla 4: Registro de incidencia -->
+            <section id="sec-crear-incidencia" class="card hidden">
+                <h2>Registrar nueva incidencia</h2>
+                <p class="ayuda">El reporte queda asociado a su usuario y se crea en estado <strong>Registrada</strong>.</p>
+
+                <form id="form-incidencia" novalidate>
+                    <div class="form-group" id="grupo-inc-estudiante">
+                        <label for="inc-estudiante">Estudiante</label>
+                        <select id="inc-estudiante" class="form-control" required>
+                            <option value="">Seleccione un estudiante</option>
+                        </select>
+                    </div>
+                    <p id="inc-nota-estudiante" class="ayuda hidden">
+                        La incidencia se registrará en su propio registro de estudiante.
+                    </p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="inc-tipo">Tipo de incidencia</label>
+                            <input type="text" id="inc-tipo" class="form-control" maxlength="50"
+                                   placeholder="Ej. Falta de entrega de actividades" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="inc-categoria">Categoría</label>
+                            <select id="inc-categoria" class="form-control" required>
+                                <option value="Conducta">Conducta</option>
+                                <option value="Académica">Académica</option>
+                                <option value="Asistencia">Asistencia</option>
+                                <option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inc-prioridad">Prioridad</label>
+                            <select id="inc-prioridad" class="form-control">
+                                <option value="Baja">Baja</option>
+                                <option value="Media" selected>Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="grupo-inc-responsable">
+                            <label for="inc-responsable">Responsable (opcional)</label>
+                            <select id="inc-responsable" class="form-control">
+                                <option value="">Sin asignar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inc-departamento">Departamento o persona asignada (opcional)</label>
+                        <input type="text" id="inc-departamento" class="form-control" maxlength="100"
+                               placeholder="Ej. Coordinación Académica">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inc-descripcion">Descripción detallada</label>
+                        <textarea id="inc-descripcion" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <p id="incidencia-mensaje" class="mensaje hidden" role="alert"></p>
+                    <button type="submit" class="btn btn-success">Registrar incidencia</button>
+                </form>
+            </section>
+
+            <!-- Pantalla 3: Estudiantes -->
+            <section id="sec-estudiantes" class="card hidden">
+                <h2>Estudiantes</h2>
+                <p id="estudiantes-descripcion" class="ayuda"></p>
+
+                <form id="form-estudiante" class="hidden" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="est-matricula">Matrícula</label>
+                            <input type="text" id="est-matricula" class="form-control" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="est-nombre">Nombre completo</label>
+                            <input type="text" id="est-nombre" class="form-control" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="est-grado">Grado / semestre</label>
+                            <input type="text" id="est-grado" class="form-control" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="est-correo">Correo</label>
+                            <input type="email" id="est-correo" class="form-control" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="est-telefono">Teléfono (opcional)</label>
+                            <input type="tel" id="est-telefono" class="form-control" maxlength="20">
+                        </div>
+                    </div>
+                    <p id="estudiante-mensaje" class="mensaje hidden" role="alert"></p>
+                    <button type="submit" class="btn btn-success">Guardar estudiante</button>
+                </form>
+
+                <p id="estudiantes-mensaje" class="mensaje hidden" role="alert"></p>
+                <div class="table-scroll">
+                    <table id="tabla-estudiantes">
+                        <thead>
+                            <tr id="tabla-estudiantes-head"></tr>
+                        </thead>
+                        <tbody id="tabla-estudiantes-body"></tbody>
+                    </table>
+                </div>
+                <p id="estudiantes-vacio" class="mensaje info hidden">No hay estudiantes para mostrar.</p>
+            </section>
+
+            <!-- Pantalla 6: Detalle y seguimiento -->
+            <section id="sec-detalle-incidencia" class="card hidden">
+                <div class="section-header">
+                    <h2>Detalle de la incidencia</h2>
+                    <button type="button" id="btn-volver-lista" class="btn btn-secondary">Volver al listado</button>
+                </div>
+
+                <p id="detalle-mensaje" class="mensaje hidden" role="alert"></p>
+                <div id="detalle-info" class="detalle-grid"></div>
+
+                <div id="bloque-asignacion" class="subcard hidden">
+                    <h3>Asignar responsable</h3>
+                    <div class="form-group">
+                        <label for="det-responsable">Responsable</label>
+                        <select id="det-responsable" class="form-control"></select>
+                    </div>
+                    <p id="asignacion-mensaje" class="mensaje hidden" role="alert"></p>
+                    <button type="button" id="btn-asignar-responsable" class="btn btn-primary">Asignar responsable</button>
+                </div>
+
+                <div id="bloque-bitacora" class="subcard">
+                    <h3>Bitácora de seguimiento</h3>
+                    <p id="bitacora-privada" class="mensaje info hidden">
+                        La bitácora no está disponible para su rol.
+                    </p>
+                    <div id="bitacora-contenedor" class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th><th>Usuario</th><th>Acción</th><th>Observación</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bitacora-body"></tbody>
+                        </table>
+                    </div>
+                    <p id="bitacora-vacia" class="mensaje info hidden">Aún no hay registros en la bitácora.</p>
+                </div>
+
+                <div id="bloque-seguimiento" class="subcard hidden">
+                    <h3>Registrar avance</h3>
+                    <form id="form-seguimiento" novalidate>
+                        <input type="hidden" id="seg-incidencia-id">
+                        <div class="form-group">
+                            <label for="seg-observacion">Observación</label>
+                            <textarea id="seg-observacion" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="seg-estado">Estado</label>
+                            <select id="seg-estado" class="form-control"></select>
+                        </div>
+                        <p id="seg-ayuda" class="ayuda hidden"></p>
+                        <p id="seguimiento-mensaje" class="mensaje hidden" role="alert"></p>
+                        <button type="submit" class="btn btn-primary">Guardar avance</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Gestión de usuarios (solo Administrador) -->
+            <section id="sec-usuarios" class="card hidden">
+                <h2>Gestión de usuarios</h2>
+                <p class="ayuda">Cree cuentas, asígnelas a un estudiante y controle su acceso.</p>
+
+                <form id="form-usuario" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="usu-nombre">Nombre completo</label>
+                            <input type="text" id="usu-nombre" class="form-control" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usu-correo">Correo</label>
+                            <input type="email" id="usu-correo" class="form-control" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usu-contrasena">Contraseña</label>
+                            <input type="password" id="usu-contrasena" class="form-control"
+                                   minlength="8" autocomplete="new-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usu-rol">Rol</label>
+                            <select id="usu-rol" class="form-control" required>
+                                <option value="Docente">Docente</option>
+                                <option value="Personal Responsable">Personal Responsable</option>
+                                <option value="Estudiante">Estudiante</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="grupo-usu-estudiante">
+                            <label for="usu-estudiante">Estudiante vinculado</label>
+                            <select id="usu-estudiante" class="form-control">
+                                <option value="">Seleccione un estudiante</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="usu-activo">Activo</label>
+                            <select id="usu-activo" class="form-control">
+                                <option value="1" selected>Sí</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p id="usuario-mensaje" class="mensaje hidden" role="alert"></p>
+                    <button type="submit" class="btn btn-success">Crear usuario</button>
+                </form>
+
+                <hr class="separador">
+
+                <form id="form-filtros-usuarios" class="filters-grid">
+                    <div class="form-group">
+                        <label for="filtro-usu-rol">Rol</label>
+                        <select id="filtro-usu-rol" class="form-control">
+                            <option value="">Todos los roles</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Docente">Docente</option>
+                            <option value="Personal Responsable">Personal Responsable</option>
+                            <option value="Estudiante">Estudiante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-usu-activo">Activo</label>
+                        <select id="filtro-usu-activo" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="filters-actions">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                </form>
+
+                <p id="usuarios-mensaje" class="mensaje hidden" role="alert"></p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+                                <th>Estudiante</th><th>Activo</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-usuarios-body"></tbody>
+                    </table>
+                </div>
+                <p id="usuarios-vacio" class="mensaje info hidden">No hay usuarios para mostrar.</p>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
